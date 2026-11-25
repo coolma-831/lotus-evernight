@@ -702,7 +702,7 @@ public final class EnchantBookFarmModule extends AddonModule {
             return false;
         }
 
-        int slot = InventoryUtils.findInventorySlot(stack -> AXES.contains(stack.getItem()));
+        int slot = InventoryUtils.findInventorySlot(stack -> AXES.contains(stack.getItem()), false);
         if (slot < 0) {
             this.print("addons.lotus.messages.enchantBookFarmMissingAxe");
             this.toggle();

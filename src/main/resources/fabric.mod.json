@@ -18,6 +18,9 @@
   "license": "GPL-3.0-only",
   "icon": "assets/lotus/icon.png",
   "environment": "client",
+  "mixins": [
+    "lotus.mixins.json"
+  ],
   "entrypoints": {
     "evernight-addon": [
       "com.xiaohe66.meteor.lotus.LotusAddon"

@@ -3,15 +3,19 @@ package com.xiaohe66.meteor.lotus;
 import com.xiaohe66.meteor.lotus.modules.AutoCraftModule;
 import com.xiaohe66.meteor.lotus.modules.AutoEnchantModule;
 import com.xiaohe66.meteor.lotus.modules.AutoHelmetModule;
+import com.xiaohe66.meteor.lotus.modules.AutoKitModule;
 import com.xiaohe66.meteor.lotus.modules.AutoPaintingModule;
 import com.xiaohe66.meteor.lotus.modules.AutoSignModule;
 import com.xiaohe66.meteor.lotus.modules.ContainerPreviewModule;
+import com.xiaohe66.meteor.lotus.modules.EnchantBookFarmModule;
 import com.xiaohe66.meteor.lotus.modules.EntityListModule;
 import com.xiaohe66.meteor.lotus.modules.LightLevelModule;
 import com.xiaohe66.meteor.lotus.modules.LotusHelperModule;
 import com.xiaohe66.meteor.lotus.modules.MapArtCopyModule;
+import com.xiaohe66.meteor.lotus.modules.QuickItemMoveModule;
 import com.xiaohe66.meteor.lotus.modules.RaidHelperModule;
 import com.xiaohe66.meteor.lotus.modules.SpiralFlightModule;
+import com.xiaohe66.meteor.lotus.modules.SpawnerFinderModule;
 import com.xiaohe66.meteor.lotus.modules.StorageFilterModule;
 import evernight.addon.AddonContext;
 import evernight.addon.EvernightAddon;
@@ -51,6 +55,10 @@ public final class LotusAddon extends EvernightAddon {
         this.register(context, new StorageFilterModule(this.lotusCategory));
         this.register(context, new EntityListModule(this.lotusCategory));
         this.register(context, new ContainerPreviewModule(this.lotusCategory));
+        this.register(context, new SpawnerFinderModule(this.lotusCategory));
+        this.register(context, new EnchantBookFarmModule(this.lotusCategory));
+        this.register(context, new QuickItemMoveModule(this.lotusCategory));
+        this.register(context, new AutoKitModule(this.lotusCategory));
 
         context.logger().info("Lotus {} initialized ({} modules)",
                 context.metadata().version(), this.registeredModules.size());

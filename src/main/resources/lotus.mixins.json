@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.xiaohe66.meteor.lotus.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "QuickItemMoveScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -22,6 +22,7 @@ import evernight.client.settings.types.NumberSetting;
 import evernight.client.settings.types.RegistrySetSetting;
 import evernight.client.utils.chat.ChatUtils;
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -83,7 +84,8 @@ import net.minecraft.world.phys.Vec3;
  *     {@code addons.lotus.names.values.*} 键）；{@code SettingColor} → {@link ColorSetting} +
  *     {@link Color}。</li>
  *     <li>{@code Module#info/warning/error} → {@link ChatUtils#printChat}：Evernight 没有聊天分级，
- *     三种提示都按普通模块消息输出。</li>
+ *     三种提示都按普通模块消息输出（上游那句 {@code "§cASD§r | "} 前缀与红色结构名也不再硬编码，
+ *     统一走模块签名 + 语言表）。</li>
  * </ul>
  *
  * <p>刻意保留的上游行为（不是移植遗漏）：
@@ -215,8 +217,8 @@ public final class SpawnerFinderModule extends AddonModule {
     private final Set<BlockPos> recordedSpawners = new LinkedHashSet<>();
 
     /** 本帧的追踪线目标 / 颜色，复用同一个列表避免每帧分配。 */
-    private final List<Vec3> tracerTargets = new java.util.ArrayList<>();
-    private final List<Color> tracerColors = new java.util.ArrayList<>();
+    private final List<Vec3> tracerTargets = new ArrayList<>();
+    private final List<Color> tracerColors = new ArrayList<>();
 
     public SpawnerFinderModule(ModuleCategory category) {
         super("lotus", "LotusSpawnerFinder",
@@ -370,16 +372,19 @@ public final class SpawnerFinderModule extends AddonModule {
             return;
         }
         ClientLevel level = this.evernightMinecraft.level;
-        if (level == null || this.evernightMinecraft.player == null) {
+        if (level == null || this.evernightMinecraft.player == null
+                || ClientContext.worldStateManager == null) {
             return;
         }
 
+        // 这份清单由 WorldStateManager 每个玩家 tick 从已加载区块重建一次，比原模块每 tick 自己
+        // 遍历一遍区块更省。
         List<BlockEntity> blockEntities = ClientContext.worldStateManager.getBlockEntities();
         for (BlockEntity blockEntity : blockEntities) {
             if (blockEntity instanceof SpawnerBlockEntity spawner) {
                 this.handleSpawner(level, spawner);
             } else if (blockEntity instanceof TrialSpawnerBlockEntity trialSpawner) {
-                this.handleTrialSpawner(trialSpawner);
+                this.handleTrialSpawner(level, trialSpawner);
             }
         }
 
@@ -436,7 +441,7 @@ public final class SpawnerFinderModule extends AddonModule {
     }
 
     /** 试炼刷怪笼的判定（原模块 {@code a_TrialSpawnerBlockEntity}）。 */
-    private void handleTrialSpawner(TrialSpawnerBlockEntity spawner) {
+    private void handleTrialSpawner(ClientLevel level, TrialSpawnerBlockEntity spawner) {
         if (!this.trialSpawnerDetection.getValue()) {
             return;
         }
@@ -454,7 +459,7 @@ public final class SpawnerFinderModule extends AddonModule {
         }
         this.trialSpawners.add(pos);
 
-        boolean hasStorage = this.hasStorageNear(this.evernightMinecraft.level, pos, TRIAL_RANGE);
+        boolean hasStorage = this.hasStorageNear(level, pos, TRIAL_RANGE);
         if (!hasStorage && this.reduceRenderSpam.getValue()) {
             this.noStorageSpawners.add(pos);
         }
@@ -595,7 +600,7 @@ public final class SpawnerFinderModule extends AddonModule {
      * 刷怪范围内有没有储物方块或箱子矿车（原模块 {@code a_BlockPos_int_toBoolean}）。
      *
      * <p>上游对范围里每个方块都单独做一次实体查询；这里改成对整块 AABB 查一次再比坐标，结果一致但
-     * 少了三万多一次实体查询。
+     * 少了三万多次实体查询。
      */
     private boolean hasStorageNear(ClientLevel level, BlockPos pos, int radius) {
         Set<Block> blocks = this.storageBlocks.getValue();
@@ -653,7 +658,8 @@ public final class SpawnerFinderModule extends AddonModule {
             return false;
         }
 
-        LevelChunkSection[] sections = level.getChunkAt(pos).getSections();
+        LevelChunk chunk = level.getChunkAt(pos);
+        LevelChunkSection[] sections = chunk.getSections();
         boolean amethystInChunk = false;
         for (int i = 0; i < Math.min(sections.length, AMETHYST_SECTION_LIMIT); i++) {
             LevelChunkSection section = sections[i];

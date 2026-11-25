@@ -81,10 +81,15 @@ import org.lwjgl.glfw.GLFW;
  *
  * <p>仍需要插件 mixin 的部分（本文件只提供公开静态入口，父级集成 mixin 后即可生效）：
  * <ul>
- *     <li>滚轮移动：{@code AbstractContainerScreen#mouseScrolled} 中调用 {@link #onMouseScroll}；</li>
- *     <li>收纳袋（Bundle）拖拽：{@code AbstractContainerScreen#mouseDragged} 中调用 {@link #onMouseDrag}，
- *         {@code mouseReleased} 中调用 {@link #onMouseRelease}。</li>
+ *     <li>滚轮移动：{@code AbstractContainerScreen#mouseScrolled} 中调用 {@link #onMouseScroll}。</li>
  * </ul>
+ *
+ * <p>TODO(port): 收纳袋（Bundle）拖拽未移植。上游在 {@code HandledScreen#mouseDragged}/
+ * {@code mouseReleased} 里接管「手上拿着收纳袋时拖拽」的整组取放，并靠取消鼠标按下/拖拽来避免原版进入
+ * quick-craft。只挂 {@code mouseDragged}/{@code mouseReleased} 的 HEAD 拦不住按下时已置位的
+ * {@code isQuickCrafting}，松开被取消后界面会卡在 quick-craft 状态，因此这个功能需要同时拦截
+ * {@code AbstractContainerScreen#mouseClicked} + {@code mouseDragged} + {@code mouseReleased}
+ * （或提供 accessor 复位 {@code isQuickCrafting}/{@code quickCraftSlots}）后再实现，不能只加半套。
  *
  * <p>TODO(port): 需要插件 mixin 调用。mixin 目标与建议签名见文件末尾的 STATIC HOOKS 注释。
  */
@@ -122,7 +127,7 @@ public final class QuickItemMoveModule extends AddonModule {
     private final Setting<Boolean> scrollMoveSetting;
 
     // ------------------------------------------------------------------
-    // 运行状态（上游 s/t/u/v/w/x）
+    // 运行状态（上游 s/t/u/v/w）
     // ------------------------------------------------------------------
 
     /** 排序点击队列（上游 {@code t}）。每个元素是一整次左键 PICKUP。*/
@@ -143,9 +148,6 @@ public final class QuickItemMoveModule extends AddonModule {
     private boolean dragSession;
     private Slot dragStartSlot;
     private boolean dragMoved;
-
-    /** 收纳袋拖拽状态：0 = 无，1 = 左键取出，2 = 右键放入（上游 {@code x}）。*/
-    private int bundleDragState;
 
     private boolean wasLeftDown;
     private boolean sortKeyWasDown;
@@ -229,6 +231,9 @@ public final class QuickItemMoveModule extends AddonModule {
         if (!pressed) {
             return;
         }
+        if (this.isWorldUnavailable()) {
+            return;
+        }
 
         Screen screen = this.evernightMinecraft.screen;
         if (!(screen instanceof AbstractContainerScreen<?> containerScreen)
@@ -264,13 +269,6 @@ public final class QuickItemMoveModule extends AddonModule {
         while (limit > 0 && !this.pendingMoveSlots.isEmpty()) {
             int slotId = this.pollMoveSlot();
             if (slotId < 0 || slotId >= menu.slots.size()) {
-                continue;
-            }
-
-            if (this.bundleDragState != 0) {
-                if (this.tickBundleDrag(menu, slotId)) {
-                    limit--;
-                }
                 continue;
             }
 
@@ -342,7 +340,7 @@ public final class QuickItemMoveModule extends AddonModule {
         if (!menu.getCarried().isEmpty()) {
             return;
         }
-        if (this.isDragKeyDown() || !this.sameTypeMoveSetting.getValue() || !this.isSameTypeKeyDown()) {
+        if (!this.sameTypeMoveSetting.getValue() || !this.isSameTypeKeyDown()) {
             return;
         }
 
@@ -382,6 +380,10 @@ public final class QuickItemMoveModule extends AddonModule {
         this.lastMouseX = event.getMouseX();
         this.lastMouseY = event.getMouseY();
         if (this.isWorldUnavailable()) {
+            return;
+        }
+        if (isCreativeClosed(screen)) {
+            this.resetState();
             return;
         }
 
@@ -613,21 +615,32 @@ public final class QuickItemMoveModule extends AddonModule {
             return slots;
         }
 
+        Set<Integer> locked = lockedSlots();
         for (int index = 9; index < 36; index++) {
+            if (locked.contains(index)) {
+                continue;
+            }
             if (index < menu.slots.size()) {
                 slots.add(index);
             }
         }
         if (this.sortHotbarSetting.getValue()) {
             for (int index = 36; index < 45; index++) {
+                if (locked.contains(index - 36)) {
+                    continue;
+                }
                 if (index < menu.slots.size()) {
                     slots.add(index);
                 }
             }
         }
-        // TODO(port): 上游会排除 Lotus「槽位锁定」模块占用的槽位（bu.c()）；
-        //  本插件没有对应模块，这里不排除任何槽位。
         return slots;
+    }
+
+    /** 上游 bu.c()：LotusHelper（原 ao）里设置的锁定物品栏下标（0-35）。*/
+    private static Set<Integer> lockedSlots() {
+        LotusHelperModule helper = ClientContext.getModule(LotusHelperModule.class);
+        return helper == null ? Set.of() : helper.getLockedSlots();
     }
 
     /** 上游 a(List, List, List, int)：把潜影盒/收纳袋按排序结果挪到普通物品之后。*/
@@ -841,7 +854,7 @@ public final class QuickItemMoveModule extends AddonModule {
     }
 
     // ------------------------------------------------------------------
-    // 滚轮移动 / 收纳袋拖拽：公开静态入口（需要父级 mixin 调用）
+    // 滚轮移动：公开静态入口（需要父级 mixin 调用）
     // ------------------------------------------------------------------
 
     /**
@@ -906,86 +919,6 @@ public final class QuickItemMoveModule extends AddonModule {
             return false;
         }
         module.swapSlots(source, target);
-        return true;
-    }
-
-    /**
-     * TODO(port): 需要插件 mixin 调用。目标：{@code AbstractContainerScreen#mouseDragged(MouseButtonEvent,DD)Z}
-     * 的 HEAD。
-     *
-     * <p>只处理「手上拿着收纳袋时拖拽」这一支（上游 a_D）。手上没有收纳袋时返回 false，原版行为不变。
-     *
-     * @return true 表示已处理，mixin 应取消原版拖拽
-     */
-    public static boolean onMouseDrag(AbstractContainerScreen<?> screen, double mouseX, double mouseY, int button) {
-        QuickItemMoveModule module = instance();
-        if (module == null || screen == null || isCreativeClosed(screen)) {
-            return false;
-        }
-        if (button != 0 && button != 1) {
-            return false;
-        }
-        AbstractContainerMenu menu = screen.getMenu();
-        if (!isBundle(menu.getCarried())) {
-            return false;
-        }
-        Slot slot = slotAt(screen, mouseX, mouseY);
-        if (slot == null) {
-            return false;
-        }
-        if (button == 0) {
-            if (!slot.hasItem()) {
-                return false;
-            }
-            module.bundleDragState = 1;
-        } else {
-            if (slot.hasItem()) {
-                return false;
-            }
-            module.bundleDragState = 2;
-        }
-        module.pendingMoveSlots.add(slot.index);
-        return true;
-    }
-
-    /**
-     * TODO(port): 需要插件 mixin 调用。目标：{@code AbstractContainerScreen#mouseReleased(MouseButtonEvent)Z}
-     * 的 HEAD。
-     *
-     * @return true 表示已处理，mixin 应取消原版松开逻辑
-     */
-    public static boolean onMouseRelease(AbstractContainerScreen<?> screen, double mouseX, double mouseY, int button) {
-        QuickItemMoveModule module = instance();
-        if (module == null || module.bundleDragState == 0) {
-            return false;
-        }
-        if (button != 0 && button != 1) {
-            return false;
-        }
-        // 上游 onMouseRelease：x != 0 时 z() 并 cancel。
-        module.resetState();
-        return true;
-    }
-
-    /** 上游 e(int)：收纳袋拖拽时的一格操作。返回是否消耗一次操作数。*/
-    private boolean tickBundleDrag(AbstractContainerMenu menu, int slotId) {
-        ItemStack carried = menu.getCarried();
-        if (!isBundle(carried)) {
-            this.resetState();
-            return false;
-        }
-        boolean hasItem = !menu.getSlot(slotId).getItem().isEmpty();
-        if (this.bundleDragState == 1) {
-            if (!hasItem) {
-                return false;
-            }
-            this.clickSlot(slotId, 0, ClickType.PICKUP);
-            return true;
-        }
-        if (hasItem) {
-            return false;
-        }
-        this.clickSlot(slotId, 1, ClickType.PICKUP);
         return true;
     }
 
@@ -1296,7 +1229,6 @@ public final class QuickItemMoveModule extends AddonModule {
         this.dragSession = false;
         this.dragStartSlot = null;
         this.dragMoved = false;
-        this.bundleDragState = 0;
         this.wasLeftDown = false;
     }
 
@@ -1340,25 +1272,12 @@ public final class QuickItemMoveModule extends AddonModule {
      *        }
      *    }
      *
-     * 2. AbstractContainerScreen#mouseDragged(Lnet/minecraft/client/input/MouseButtonEvent;DD)Z：
-     *    @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
-     *    private void lotus$quickItemMoveDrag(MouseButtonEvent event, double dragX, double dragY,
-     *            CallbackInfoReturnable<Boolean> cir) {
-     *        if (QuickItemMoveModule.onMouseDrag((AbstractContainerScreen<?>) (Object) this,
-     *                event.x(), event.y(), event.button())) {
-     *            cir.setReturnValue(true);
-     *        }
-     *    }
+     * 2. 收纳袋（Bundle）拖拽：未移植，见类注释里的 TODO(port)。它需要同时拦截
+     *    AbstractContainerScreen#mouseClicked(Lnet/minecraft/client/input/MouseButtonEvent;Z)Z、
+     *    #mouseDragged(Lnet/minecraft/client/input/MouseButtonEvent;DD)Z 与
+     *    #mouseReleased(Lnet/minecraft/client/input/MouseButtonEvent;)Z 三个入口，并在点击阶段就取消原版
+     *    处理（避免 isQuickCrafting 被置位），本模块不会假装提供只挂一半的入口。
      *
-     * 3. AbstractContainerScreen#mouseReleased(Lnet/minecraft/client/input/MouseButtonEvent;)Z：
-     *    @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
-     *    private void lotus$quickItemMoveRelease(MouseButtonEvent event, CallbackInfoReturnable<Boolean> cir) {
-     *        if (QuickItemMoveModule.onMouseRelease((AbstractContainerScreen<?>) (Object) this,
-     *                event.x(), event.y(), event.button())) {
-     *            cir.setReturnValue(true);
-     *        }
-     *    }
-     *
-     * 不装 mixin 时：Shift 拖拽、Alt 同类移动/丢弃、R 排序仍然可用；只有滚轮移动和收纳袋拖拽不生效。
+     * 不装 mixin 时：Shift 拖拽、Alt 同类移动/丢弃、R 排序仍然可用；只有滚轮移动不生效。
      */
 }
