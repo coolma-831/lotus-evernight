@@ -41,6 +41,31 @@ if (!evernightJarFile.isFile() || evernightJarFile.length() == 0L) {
     }
 }
 
+// Litematica / Malilib：打印机、制图师、自动备货三个模块的编译期可选依赖。
+// 与 Evernight 一样在配置阶段下载到 libs/（已在 .gitignore 中忽略），用 modCompileOnly 交给
+// Loom 从 intermediary 重映射到 named；运行期只有装了对应 mod 才会用到这些类。
+def litematicaJarFile = layout.projectDirectory.file('libs/litematica-fabric-1.21.11-0.26.16.jar').asFile
+def malilibJarFile = layout.projectDirectory.file('libs/malilib-fabric-1.21.11-0.27.20.jar').asFile
+def optionalModJars = [
+        [file: litematicaJarFile, url: 'https://cdn.modrinth.com/data/bEpr0Arc/versions/mengBR9D/litematica-fabric-1.21.11-0.26.16.jar'],
+        [file: malilibJarFile, url: 'https://cdn.modrinth.com/data/GcWjdA9I/versions/loabWpyU/malilib-fabric-1.21.11-0.27.20.jar'],
+]
+optionalModJars.each { optional ->
+    File jar = optional.file
+    if (!jar.isFile() || jar.length() == 0L) {
+        jar.parentFile.mkdirs()
+        logger.lifecycle("Downloading optional mod jar: ${optional.url}")
+        try {
+            new URL(optional.url).withInputStream { input ->
+                jar.withOutputStream { output -> output << input }
+            }
+        } catch (Exception failure) {
+            jar.delete()
+            throw new GradleException("Could not download ${optional.url}.", failure)
+        }
+    }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings loom.officialMojangMappings()
@@ -49,6 +74,9 @@ dependencies {
 
     // Loom 负责把发行 jar 从 intermediary 重映射到 named。
     modImplementation files(evernightJarFile)
+
+    // Litematica / Malilib 仅编译期使用。
+    modCompileOnly files(litematicaJarFile, malilibJarFile)
 }
 
 tasks.withType(JavaCompile).configureEach {

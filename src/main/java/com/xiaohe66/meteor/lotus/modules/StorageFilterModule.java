@@ -207,6 +207,15 @@ public final class StorageFilterModule extends AddonModule {
         return module != null && module.stashFinderSetting.getValue() && module.isExcluded(blockEntity.getBlockPos());
     }
 
+    /**
+     * 供 {@code StashFinderModuleMixin} 调用：按坐标判断该容器是否应在存储查找器里被忽略
+     * （对应原模块 {@code K_} 事件）。
+     */
+    public static boolean shouldHideFromStashFinderAt(BlockPos position) {
+        StorageFilterModule module = active;
+        return module != null && module.stashFinderSetting.getValue() && module.isExcluded(position);
+    }
+
     /** 目标能力模块（存储透视 / 存储查找器）是否至少开了一个，尽量只走公开 API。 */
     private boolean isConsumerActive() {
         if (this.storageEspSetting.getValue()) {
@@ -322,21 +331,12 @@ public final class StorageFilterModule extends AddonModule {
         }
     }
 
-    // TODO(port): 原模块真正的行为活在 Lotus 自己的两个 mixin 里，而 Evernight 1.0.3 没有对应的公开
-    //  注入口，所以「排除遗迹」的结论目前只算出来、没有喂给存储透视 / 存储查找器：
-    //  1) 存储透视：Meteor 的 StorageESP 有 Tracers 开关 + Renderer3D#line，Lotus 用 @Redirect 跳过命中
-    //     的那条连线。Evernight 的 ESPModule 根本没有 tracers（javap -p 无任何 tracer 成员），容器是
-    //     ESPRenderHelper#shouldRenderBlockEntity(BlockEntity) 过滤后重绘方块模型，而该方法和
-    //     chestsSetting 等都是 protected，插件模块（不同包、不同类层次）调不到也覆写不了；1.0.3 也没有
-    //     「即将渲染容器」的事件。要恢复，只能给插件加自己的 mixin（需要第二个文件 + fabric.mod.json 的
-    //     "mixins" 声明）：在 shouldRenderBlockEntity 返回 true 后追加
-    //     && !StorageFilterModule.shouldHideFromEsp(blockEntity)。
-    //  2) 存储查找器：Meteor 的 StashFinder#onChunkData 遍历 storageBlocks 时被 @Redirect 改判。Evernight
-    //     的计数写在私有的 onClientChunkCacheReplaceWithPacketDataEvent 里，没有过滤回调，public 成员只有
-    //     logSetting / xaeroSetting / createStash，另有 protected 的 registerStash。要恢复，需要 mixin 到那段
-    //     循环（或在 registerStash 前拦一次），调用 shouldHideFromStashFinder(blockEntity)。
-    //     另外本体已自带 IgnoreNatural（按结构模板排除地牢/下界要塞/堡垒遗迹/远古城市/试炼密室），语义比原模块
-    //     的方块启发式更准；只想要「排除遗迹」效果的玩家直接开那个开关即可，不必等这里的注入。
-    //  3) getInfo() 里的计数是注入落地前的诊断占位（证明判定在跑），注入完成后应删掉，避免和真实的
-    //     隐藏效果混淆。
+    // 注入说明（已实现）：
+    //  1) 存储透视：插件自带的 ESPRenderHelperMixin 在
+    //     ESPRenderHelper#shouldRenderBlockEntity(BlockEntity) 的 HEAD 调用 shouldHideFromEsp，
+    //     命中时返回 false，容器不再被重绘/描边（对应原 Lotus 的 MixinStorageESP）。
+    //  2) 存储查找器：插件自带的 StashFinderModuleMixin 对 StashFinderModule 私有扫描循环里
+    //     WorldStateManager#hasKnownPlacement(BlockPos) 做 @Redirect，命中时返回 true，
+    //     该容器不再计入箱子数、也不登记潜影盒（对应原 Lotus 的 MixinStashFinder）。
+    //  3) getInfo() 的计数仍然保留，作为「判定命中数」的可见反馈；隐藏效果现在会真实生效。
 }

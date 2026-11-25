@@ -15,7 +15,7 @@
   Evernight 的 `AddonModule`，类名、设置名与语言键都是新的稳定标识。
 - 按移植者要求，**`L集结令`（公屏关键字自动回复）功能已移除**，不会出现在本插件中。
 - 玩家可见文本全部在 `assets/lotus/lang/{en_us,zh_cn}.json`，键前缀 `addons.lotus.*`。
-- 插件自带一个 mixin（`lotus.mixins.json`）用于容器界面滚轮，其余功能都通过 Evernight 公开事件实现。
+- 插件自带 mixin（`lotus.mixins.json`）：容器界面滚轮、ESP 容器过滤、存储查找器过滤，其余功能都通过 Evernight 公开事件实现。
 
 ## 模块状态（19 / 24）
 
@@ -31,7 +31,7 @@
 | M地图画复制 | `LotusMapArtCopy` | ✅ |
 | A自动附魔 | `LotusAutoEnchant` | ✅ |
 | Lotus助手 | `LotusHelper` | ✅ |
-| V存储查找增强 | `LotusStorageFilter` | ⚠️ 判定逻辑已移植，注入需后续插件 mixin |
+| V存储查找增强 | `LotusStorageFilter` | ✅ 自带 mixin 注入 ESP / StashFinder |
 | V实体列表 | `LotusEntityList` | ✅ |
 | V预览器 | `LotusContainerPreview` | ✅ |
 | H刷怪笼激活检测 | `LotusSpawnerFinder` | ✅（记录持久化待补） |
@@ -76,8 +76,8 @@ python scripts/check-lang.py
 
 - 未进游戏实测：构建与语言表校验通过，行为需要实机验收。
 - 原插件大量依赖专服「3c/简易仓库」的容器布局与展示框约定，仓库类模块需要按同样布局摆放才生效。
-- `V存储查找增强` 的判定逻辑完整，但真正隐藏容器还需要对 Evernight 的 ESP/StashFinder 注入，当前只提供
-  静态注入口（`shouldHideFromEsp` / `shouldHideFromStashFinder`）。
+- 插件自带 3 个 mixin：容器滚轮（`QuickItemMoveScreenMixin`）、ESP 容器过滤（`ESPRenderHelperMixin`）、
+  存储查找器过滤（`StashFinderModuleMixin`）。它们注入的是 Evernight 本体类，本体大版本升级时需要复核。
 
 ## 版权与授权
 

@@ -3,7 +3,9 @@
   "package": "com.xiaohe66.meteor.lotus.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "QuickItemMoveScreenMixin"
+    "ESPRenderHelperMixin",
+    "QuickItemMoveScreenMixin",
+    "StashFinderModuleMixin"
   ],
   "injectors": {
     "defaultRequire": 1
