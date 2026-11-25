@@ -6,6 +6,7 @@ import com.xiaohe66.meteor.lotus.modules.AutoHelmetModule;
 import com.xiaohe66.meteor.lotus.modules.AutoKitModule;
 import com.xiaohe66.meteor.lotus.modules.AutoPaintingModule;
 import com.xiaohe66.meteor.lotus.modules.AutoSignModule;
+import com.xiaohe66.meteor.lotus.modules.AutoStockModule;
 import com.xiaohe66.meteor.lotus.modules.AutoSortModule;
 import com.xiaohe66.meteor.lotus.modules.ContainerPreviewModule;
 import com.xiaohe66.meteor.lotus.modules.EnchantBookFarmModule;
@@ -13,8 +14,10 @@ import com.xiaohe66.meteor.lotus.modules.EntityListModule;
 import com.xiaohe66.meteor.lotus.modules.LightLevelModule;
 import com.xiaohe66.meteor.lotus.modules.LotusHelperModule;
 import com.xiaohe66.meteor.lotus.modules.MapArtCopyModule;
+import com.xiaohe66.meteor.lotus.modules.MapArtPrinterModule;
 import com.xiaohe66.meteor.lotus.modules.QuickItemMoveModule;
 import com.xiaohe66.meteor.lotus.modules.RaidHelperModule;
+import com.xiaohe66.meteor.lotus.modules.SchematicPrinterModule;
 import com.xiaohe66.meteor.lotus.modules.SpiralFlightModule;
 import com.xiaohe66.meteor.lotus.modules.SpawnerFinderModule;
 import com.xiaohe66.meteor.lotus.modules.StorageFilterModule;
@@ -22,6 +25,7 @@ import com.xiaohe66.meteor.lotus.modules.VillagerTradeModule;
 import evernight.addon.AddonContext;
 import evernight.addon.EvernightAddon;
 import evernight.client.modules.ModuleCategory;
+import net.fabricmc.loader.api.FabricLoader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,6 +67,13 @@ public final class LotusAddon extends EvernightAddon {
         this.register(context, new AutoKitModule(this.lotusCategory));
         this.register(context, new AutoSortModule(this.lotusCategory));
         this.register(context, new VillagerTradeModule(this.lotusCategory));
+
+        // 依赖 Litematica 的三个模块只在装了 Litematica 时注册，避免类加载时解析可选依赖。
+        if (FabricLoader.getInstance().isModLoaded("litematica")) {
+            this.register(context, new SchematicPrinterModule(this.lotusCategory));
+            this.register(context, new MapArtPrinterModule(this.lotusCategory));
+            this.register(context, new AutoStockModule(this.lotusCategory));
+        }
 
         context.logger().info("Lotus {} initialized ({} modules)",
                 context.metadata().version(), this.registeredModules.size());

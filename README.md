@@ -17,7 +17,7 @@
 - 玩家可见文本全部在 `assets/lotus/lang/{en_us,zh_cn}.json`，键前缀 `addons.lotus.*`。
 - 插件自带 mixin（`lotus.mixins.json`）：容器界面滚轮、ESP 容器过滤、存储查找器过滤，其余功能都通过 Evernight 公开事件实现。
 
-## 模块状态（19 / 24）
+## 模块状态（22 / 24）
 
 | 原模块 | Evernight 模块名 | 状态 |
 | --- | --- | --- |
@@ -40,9 +40,9 @@
 | S自动Kit | `LotusAutoKit` | ✅（需 Baritone） |
 | S自动分类 | `LotusAutoSort` | ✅（需 Baritone） |
 | A自动村民交易 | `LotusVillagerTrade` | ✅（需 Baritone） |
-| A打印机 | `LotusSchematicPrinter` | ⏳ 需要 Litematica 编译依赖 |
-| M制图师 | `LotusMapArtPrinter` | ⏳ 需要 Litematica 编译依赖 |
-| S自动备货 | `LotusAutoStock` | ⏳ 需要 Litematica 编译依赖 |
+| A打印机 | `LotusSchematicPrinter` | ✅（需 Litematica） |
+| M制图师 | `LotusMapArtPrinter` | ✅（需 Litematica） |
+| S自动备货 | `LotusAutoStock` | ✅（需 Litematica，原版未注册） |
 | L国际化 | `LotusI18n` | ⏳ 依赖 Meteor 语言系统，Evernight 无对应机制 |
 | L集结令 | — | ❌ 按移植者要求移除 |
 
@@ -50,8 +50,9 @@
 - 带 `Lotus` 前缀的模块名是为了避开 Evernight 本体已有的同名模块（`AutoCraft`、`AutoTrade`、`EntityList`、
   `AutoSign` 等）。模块名是配置/预设/指令的稳定键，发布后不要再改。
 - 依赖 Baritone 的模块通过 `ClientContext.baritoneBridge` 工作，未安装 Baritone 时启动会提示并停用。
-- 依赖 Litematica 的三个模块需要额外的 `litematica`/`malilib` 编译期依赖，暂未纳入本仓库，避免把第三方
-  jar 提交进仓库；移植时沿用相同的 `AddonModule` 结构即可。
+- 依赖 Litematica 的三个模块：构建时由 `build.gradle` 自动下载 Modrinth 上的 `litematica`/`malilib`
+  （仅编译期，`libs/*.jar` 不入库）；运行期只有装了 Litematica 才会通过
+  `FabricLoader.isModLoaded("litematica")` 注册这三个模块。
 - 所有未移植/降级处都在代码里以 `// TODO(port): ...` 标注，不静默删功能。
 
 ## 构建
