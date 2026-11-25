@@ -1,10 +1,15 @@
 package com.xiaohe66.meteor.lotus;
 
+import com.xiaohe66.meteor.lotus.modules.AutoCraftModule;
 import com.xiaohe66.meteor.lotus.modules.AutoHelmetModule;
 import com.xiaohe66.meteor.lotus.modules.AutoSignModule;
+import com.xiaohe66.meteor.lotus.modules.RaidHelperModule;
+import com.xiaohe66.meteor.lotus.modules.SpiralFlightModule;
 import evernight.addon.AddonContext;
 import evernight.addon.EvernightAddon;
 import evernight.client.modules.ModuleCategory;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Lotus 的 Evernight 插件入口。
@@ -18,16 +23,26 @@ import evernight.client.modules.ModuleCategory;
 public final class LotusAddon extends EvernightAddon {
     /** 插件分类，显示名来自 {@code addons.lotus.names.categories.Lotus}。 */
     private ModuleCategory lotusCategory;
+    /** 已注册模块名，仅用于启动日志。 */
+    private final List<String> registeredModules = new ArrayList<>();
 
     @Override
     public void onInitialize(AddonContext context) {
         this.lotusCategory = context.registerCategory("Lotus");
 
-        context.registerModule(new AutoHelmetModule(this.lotusCategory));
-        context.registerModule(new AutoSignModule(this.lotusCategory));
+        this.register(context, new AutoHelmetModule(this.lotusCategory));
+        this.register(context, new AutoSignModule(this.lotusCategory));
+        this.register(context, new SpiralFlightModule(this.lotusCategory));
+        this.register(context, new AutoCraftModule(this.lotusCategory));
+        this.register(context, new RaidHelperModule(this.lotusCategory));
 
         context.logger().info("Lotus {} initialized ({} modules)",
-                context.metadata().version(), 2);
+                context.metadata().version(), this.registeredModules.size());
+    }
+
+    private void register(AddonContext context, evernight.addon.AddonModule module) {
+        context.registerModule(module);
+        this.registeredModules.add(module.getName());
     }
 
     public ModuleCategory getLotusCategory() {
