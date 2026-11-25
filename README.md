@@ -5,20 +5,18 @@
 [Evernight](https://github.com/Evernight-Client/Evernight) 客户端。
 
 - 目标客户端：Evernight **1.0.3** · Minecraft **1.21.11** · Fabric Loader 0.20.1 · Java 21
-- 插件 id：`lotus`
+- 插件 id：`lotus`，插件分类：`Lotus`
 - 构建产物：`build/libs/lotus-evernight-1.19.7.jar`
 
 ## 说明
 
 - 本仓库是**社区移植**，不是原作者发布的版本。原插件的类名在发行 jar 中被混淆，这里按行为重写为
-  Evernight 的 `AddonModule`，正文里的类名、设置名与语言键都是新的稳定标识。
+  Evernight 的 `AddonModule`，类名、设置名与语言键都是新的稳定标识。
 - 按移植者要求，**`L集结令`（公屏关键字自动回复）功能已移除**，不会出现在本插件中。
 - 玩家可见文本全部在 `assets/lotus/lang/{en_us,zh_cn}.json`，键前缀 `addons.lotus.*`。
-- 本插件不会修改 Evernight 本体；所有功能通过 `AddonContext` 注册模块。
+- 插件自带一个 mixin（`lotus.mixins.json`）用于容器界面滚轮，其余功能都通过 Evernight 公开事件实现。
 
-## 模块状态
-
-已完成 **9 / 24**（构建、语言表校验均通过；未进游戏实测）：
+## 模块状态（19 / 24）
 
 | 原模块 | Evernight 模块名 | 状态 |
 | --- | --- | --- |
@@ -31,28 +29,29 @@
 | M自动贴画 | `LotusAutoPainting` | ✅ |
 | M地图画复制 | `LotusMapArtCopy` | ✅ |
 | A自动附魔 | `LotusAutoEnchant` | ✅ |
-| V实体列表 | `LotusEntityList` | ⏳ |
-| L快捷物品操作 | `LotusQuickItemMove` | ⏳ |
-| V预览器 | `LotusContainerPreview` | ⏳ |
-| V存储查找增强 | `LotusStorageFilter` | ⏳ |
-| H刷怪笼激活检测 | `LotusSpawnerFinder` | ⏳ |
-| S自动分类 | `LotusAutoSort` | ⏳ |
-| S自动Kit | `LotusAutoKit` | ⏳ |
-| A刷附魔书 | `LotusEnchantBookFarm` | ⏳ |
-| A自动村民交易 | `LotusVillagerTrade` | ⏳ |
-| A打印机 | `LotusSchematicPrinter` | ⏳ |
-| M制图师 | `LotusMapArtPrinter` | ⏳ |
-| S自动备货 | `LotusAutoStock` | ⏳ |
-| L国际化 | `LotusI18n` | ⏳ |
-| Lotus助手 | `LotusHelper` | ⏳ |
+| Lotus助手 | `LotusHelper` | ✅ |
+| V存储查找增强 | `LotusStorageFilter` | ⚠️ 判定逻辑已移植，注入需后续插件 mixin |
+| V实体列表 | `LotusEntityList` | ✅ |
+| V预览器 | `LotusContainerPreview` | ✅ |
+| H刷怪笼激活检测 | `LotusSpawnerFinder` | ✅（记录持久化待补） |
+| A刷附魔书 | `LotusEnchantBookFarm` | ✅（需 Baritone） |
+| L快捷物品操作 | `LotusQuickItemMove` | ✅（滚轮靠自带 mixin） |
+| S自动Kit | `LotusAutoKit` | ✅（需 Baritone） |
+| S自动分类 | `LotusAutoSort` | ✅（需 Baritone） |
+| A自动村民交易 | `LotusVillagerTrade` | ✅（需 Baritone） |
+| A打印机 | `LotusSchematicPrinter` | ⏳ 需要 Litematica 编译依赖 |
+| M制图师 | `LotusMapArtPrinter` | ⏳ 需要 Litematica 编译依赖 |
+| S自动备货 | `LotusAutoStock` | ⏳ 需要 Litematica 编译依赖 |
+| L国际化 | `LotusI18n` | ⏳ 依赖 Meteor 语言系统，Evernight 无对应机制 |
 | L集结令 | — | ❌ 按移植者要求移除 |
 
 说明：
-- 带 `Lotus` 前缀的模块名是为了避开 Evernight 本体已有的同名模块（`AutoCraft`、`AutoTrade`、`EntityList` 等），
-  模块名是配置/预设/指令的稳定键，发布后不要再改。
-- ⏳ 中依赖 Litematica / Baritone 的（`as`、`ac`、`af`、`U_`、`Z_`、`ay`、`az`）与需要 Meteor 自绘 GUI 的
-  （`R_`、`U_`）工作量最大，会分阶段补齐；代码里未移植处一律以 `// TODO(port): ...` 标注，不静默删功能。
-
+- 带 `Lotus` 前缀的模块名是为了避开 Evernight 本体已有的同名模块（`AutoCraft`、`AutoTrade`、`EntityList`、
+  `AutoSign` 等）。模块名是配置/预设/指令的稳定键，发布后不要再改。
+- 依赖 Baritone 的模块通过 `ClientContext.baritoneBridge` 工作，未安装 Baritone 时启动会提示并停用。
+- 依赖 Litematica 的三个模块需要额外的 `litematica`/`malilib` 编译期依赖，暂未纳入本仓库，避免把第三方
+  jar 提交进仓库；移植时沿用相同的 `AddonModule` 结构即可。
+- 所有未移植/降级处都在代码里以 `// TODO(port): ...` 标注，不静默删功能。
 
 ## 构建
 
@@ -69,6 +68,15 @@ python scripts/check-lang.py
 
 把 `lotus-evernight-1.19.7.jar` 放进 `.minecraft/mods/`，同时安装 Evernight 1.0.3 与 Fabric Loader 0.20.1。
 进入游戏后 `;addons` 应能看到 `lotus`，ClickGUI 的 `Lotus` 分类里有对应模块。
+
+可选依赖：Baritone（`baritone` 或 `baritone-meteor`）用于需要走位的仓库/村民类模块。
+
+## 已知限制
+
+- 未进游戏实测：构建与语言表校验通过，行为需要实机验收。
+- 原插件大量依赖专服「3c/简易仓库」的容器布局与展示框约定，仓库类模块需要按同样布局摆放才生效。
+- `V存储查找增强` 的判定逻辑完整，但真正隐藏容器还需要对 Evernight 的 ESP/StashFinder 注入，当前只提供
+  静态注入口（`shouldHideFromEsp` / `shouldHideFromStashFinder`）。
 
 ## 版权与授权
 
