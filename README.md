@@ -7,6 +7,7 @@
 - 目标客户端：Evernight **1.0.3** · Minecraft **1.21.11** · Fabric Loader 0.20.1 · Java 21
 - 插件 id：`lotus`，插件分类：`Lotus`
 - 构建产物：`build/libs/lotus-evernight-1.19.7.jar`
+- 下载：<https://github.com/coolma-831/lotus-evernight/releases/tag/v1.19.7>
 
 ## 说明
 
