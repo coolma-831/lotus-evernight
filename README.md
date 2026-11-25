@@ -18,21 +18,41 @@
 
 ## 模块状态
 
+已完成 **9 / 24**（构建、语言表校验均通过；未进游戏实测）：
+
 | 原模块 | Evernight 模块名 | 状态 |
 | --- | --- | --- |
-| L自动头盔 | `AutoHelmet` | ✅ 已移植 |
-| S自动合成 | `LotusAutoCraft` | 🚧 移植中 |
-| A袭击助手 | `LotusRaidHelper` | 🚧 移植中 |
-| H螺旋扫图 | `SpiralFlight` | 🚧 移植中 |
-| 其余模块 | — | ⏳ 待移植（见下） |
+| L自动头盔 | `AutoHelmet` | ✅ |
+| L自动签名 | `LotusAutoSign` | ✅ |
+| H螺旋扫图 | `SpiralFlight` | ✅ |
+| S自动合成 | `LotusAutoCraft` | ✅ |
+| A袭击助手 | `LotusRaidHelper` | ✅ |
+| V生电辅助 | `LightLevel` | ✅ |
+| M自动贴画 | `LotusAutoPainting` | ✅ |
+| M地图画复制 | `LotusMapArtCopy` | ✅ |
+| A自动附魔 | `LotusAutoEnchant` | ✅ |
+| V实体列表 | `LotusEntityList` | ⏳ |
+| L快捷物品操作 | `LotusQuickItemMove` | ⏳ |
+| V预览器 | `LotusContainerPreview` | ⏳ |
+| V存储查找增强 | `LotusStorageFilter` | ⏳ |
+| H刷怪笼激活检测 | `LotusSpawnerFinder` | ⏳ |
+| S自动分类 | `LotusAutoSort` | ⏳ |
+| S自动Kit | `LotusAutoKit` | ⏳ |
+| A刷附魔书 | `LotusEnchantBookFarm` | ⏳ |
+| A自动村民交易 | `LotusVillagerTrade` | ⏳ |
+| A打印机 | `LotusSchematicPrinter` | ⏳ |
+| M制图师 | `LotusMapArtPrinter` | ⏳ |
+| S自动备货 | `LotusAutoStock` | ⏳ |
+| L国际化 | `LotusI18n` | ⏳ |
+| Lotus助手 | `LotusHelper` | ⏳ |
+| L集结令 | — | ❌ 按移植者要求移除 |
 
-待移植模块清单（原类名）：`aa` M地图画复制、`ab` M自动贴画、`ac` M制图师、`ae` L自动签名、
-`ah` V实体列表、`am` L快捷物品操作、`ar` V预览器、`av` V生电辅助、`ax` V存储查找增强、
-`R_` H刷怪笼激活检测、`U_` S自动分类、`X_` A自动附魔、`Y_` L自动头盔、`Z_` S自动Kit、
-`ay` A刷附魔书、`az` A自动村民交易、`as` A打印机、`af` S自动备货、`al` L国际化。
+说明：
+- 带 `Lotus` 前缀的模块名是为了避开 Evernight 本体已有的同名模块（`AutoCraft`、`AutoTrade`、`EntityList` 等），
+  模块名是配置/预设/指令的稳定键，发布后不要再改。
+- ⏳ 中依赖 Litematica / Baritone 的（`as`、`ac`、`af`、`U_`、`Z_`、`ay`、`az`）与需要 Meteor 自绘 GUI 的
+  （`R_`、`U_`）工作量最大，会分阶段补齐；代码里未移植处一律以 `// TODO(port): ...` 标注，不静默删功能。
 
-其中依赖 Litematica / Baritone 的模块、以及带 Meteor 自绘 GUI 的模块工作量较大，会分阶段补齐；
-未移植处不会静默删除，代码里以 `// TODO(port): ...` 标注。
 
 ## 构建
 
