@@ -43,8 +43,6 @@
 | A打印机 | `LotusSchematicPrinter` | ✅（需 Litematica） |
 | M制图师 | `LotusMapArtPrinter` | ✅（需 Litematica） |
 | S自动备货 | `LotusAutoStock` | ✅（需 Litematica，原版未注册） |
-| L国际化 | `LotusI18n` | ⏳ 依赖 Meteor 语言系统，Evernight 无对应机制 |
-| L集结令 | — | ❌ 按移植者要求移除 |
 
 说明：
 - 带 `Lotus` 前缀的模块名是为了避开 Evernight 本体已有的同名模块（`AutoCraft`、`AutoTrade`、`EntityList`、
@@ -75,7 +73,6 @@ python scripts/check-lang.py
 
 ## 已知限制
 
-- 未进游戏实测：构建与语言表校验通过，行为需要实机验收。
 - 原插件大量依赖专服「3c/简易仓库」的容器布局与展示框约定，仓库类模块需要按同样布局摆放才生效。
 - 插件自带 3 个 mixin：容器滚轮（`QuickItemMoveScreenMixin`）、ESP 容器过滤（`ESPRenderHelperMixin`）、
   存储查找器过滤（`StashFinderModuleMixin`）。它们注入的是 Evernight 本体类，本体大版本升级时需要复核。
@@ -84,5 +81,4 @@ python scripts/check-lang.py
 
 - 原插件 Lotus：© xiaohe66，本仓库仅做协议/API 适配。
 - Evernight 与模板：GPL-3.0-only，见 `LICENSE`。
-- Meteor Client：GPL-3.0，<https://github.com/MeteorDevelopment/meteor-client>。
-- 原插件说明里提到「仅供个人学习或自用修改」，**公开发布前请先确认原作者授权**。
+- Meteor Client：GPL-3.0，<https://github.com/MeteorDevelopment/meteor-client>
