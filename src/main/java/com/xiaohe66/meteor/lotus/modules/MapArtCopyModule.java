@@ -32,7 +32,7 @@ import net.minecraft.world.item.component.BundleContents;
  * Port of {@code aa} (M地图画复制) from Lotus (author xiaohe66, GPL-3.0).
  *
  * <p>复制收纳袋中的地图画：把待复制袋里的地图画逐张取到背包，与空地图在玩家 2x2 合成格里
- * 合成出副本（同一张地图的副本会堆叠成 2 张），再把 2 张一份的地图画分别放进两个已复制袋。
+ * 合成（结果是原图 + 副本共 2 张），再把 2 张一份的地图画分别放进两个已复制袋。
  *
  * <p>使用前提（上游 {@code aa.E()} 的检查）：背包里正好 3 个收纳袋（1 个待复制袋 +
  * 2 个已复制袋），空地图数量足够，且至少有 1 个空背包槽位。
@@ -408,7 +408,8 @@ public final class MapArtCopyModule extends AddonModule {
         int containerId = menu.containerId;
 
         if (!menu.getSlot(InventoryMenu.RESULT_SLOT).getItem().isEmpty()) {
-            // 合成结果已就绪：shift-click 取出（副本会与背包里的原图堆叠成 2 张）。
+            // 合成结果已就绪（原图 + 副本共 2 张）：shift-click 取到背包形成 2 张一份，
+            // 交给 NEXT 状态拆进两个已复制袋。
             InventoryUtils.clickSlot(containerId, InventoryMenu.RESULT_SLOT, 0, ClickType.QUICK_MOVE);
         } else if (menu.getSlot(InventoryMenu.CRAFT_SLOT_START).getItem().isEmpty()) {
             ItemStack sourceStack = this.findInventoryStack(
@@ -571,6 +572,12 @@ public final class MapArtCopyModule extends AddonModule {
         this.lastInventorySlot = -1;
     }
 
+    /**
+     * 上游 {@code Module.warning(String, Object...)}。
+     *
+     * <p>TODO(port): 上游 warning 带红色前缀与提示音；Evernight 只有一种聊天签名，
+     * 这里统一用 {@link ChatUtils#moduleSignature(evernight.client.modules.Module)} 输出。
+     */
     private void message(String key, Object... args) {
         String text = Translations.get(key);
         if (args.length > 0) {
