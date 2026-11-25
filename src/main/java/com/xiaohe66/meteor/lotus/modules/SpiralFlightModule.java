@@ -95,6 +95,8 @@ public final class SpiralFlightModule extends AddonModule {
     /** 进服时缓存下来的服务器/维度，等价于原 {@code bu} 的静态 server key（离开世界后仍能存档）。 */
     private String sessionServerKey;
     private String sessionDimensionId;
+    /** 是否由本模块打开了 Evernight 的 FreeLook（原 bu.f()），关闭时只还原自己开的那次。 */
+    private boolean freeLookEnabledByUs;
 
     // 螺旋状态（原 aJ_ 的字段）。
     private double spiralCenterX;
@@ -142,10 +144,11 @@ public final class SpiralFlightModule extends AddonModule {
         this.savedProgress = null;
         this.sessionServerKey = null;
         this.sessionDimensionId = null;
+        this.freeLookEnabledByUs = false;
         this.spiralBlocksPerTurn = 0.0;
-        // 原 onActivate() 只在世界里做事：bu.f()（FreeLook 相机）+ a_()（1 秒后进入起飞）。
+        // 原 onActivate() 只在世界里做事：bu.f()（FreeLook 相机）+ a_()（1 秒后进入起飞），
+        // 这两步都放在 joinWorld() 里，模块在标题界面启用时也能在进服后正常开始。
         if (!this.isWorldUnavailable()) {
-            this.enableFreeLook();
             this.joinWorld();
         }
     }
@@ -270,6 +273,7 @@ public final class SpiralFlightModule extends AddonModule {
         this.joined = true;
         this.sessionServerKey = this.currentServerKey();
         this.sessionDimensionId = this.currentDimensionId();
+        this.enableFreeLook();
         this.loadProgress();
         this.startCountdown();
     }
@@ -802,15 +806,20 @@ public final class SpiralFlightModule extends AddonModule {
 
     // ------------------------------------------------------------------ 杂项
 
-    /** 原 bu.f()/bu.g()：飞行时让相机可以自由看，落地/关闭时还原。 */
+    /** 原 bu.f()/bu.g()：飞行时让相机可以自由看，关闭时只还原本模块打开的那一次。 */
     private void enableFreeLook() {
         FreeLookModule freeLook = ClientContext.getModule(FreeLookModule.class);
         if (freeLook != null && !freeLook.isToggled()) {
             freeLook.enable();
+            this.freeLookEnabledByUs = true;
         }
     }
 
     private void disableFreeLook() {
+        if (!this.freeLookEnabledByUs) {
+            return;
+        }
+        this.freeLookEnabledByUs = false;
         FreeLookModule freeLook = ClientContext.getModule(FreeLookModule.class);
         if (freeLook != null && freeLook.isToggled()) {
             freeLook.disable();
