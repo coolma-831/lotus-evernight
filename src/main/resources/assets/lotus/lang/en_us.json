@@ -1,0 +1,11 @@
+{
+  "addons.lotus.names.categories.Lotus": "Lotus",
+  "addons.lotus.names.modules.AutoHelmet": "Auto Helmet",
+  "addons.lotus.descriptions.modules.AutoHelmet": "Swaps to a golden helmet when a piglin is nearby and back to diamond/netherite afterwards.",
+  "addons.lotus.names.settings.DetectRange": "Detect Range",
+  "addons.lotus.names.settings.DetectTicks": "Detect Ticks",
+  "addons.lotus.names.settings.Delay": "Delay",
+  "addons.lotus.names.settings.SkipEmpty": "Skip When Empty",
+  "addons.lotus.names.settings.AvoidEnchantments": "Avoided Enchantments",
+  "addons.lotus.messages.helmetSwitched": "Helmet switched"
+}

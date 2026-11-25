@@ -1,0 +1,68 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+    id 'idea'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+}
+
+// 插件链接 Evernight 的发行 jar（GitHub Release 里的 evernight-<version>.jar）。
+// 它已经 remap 到 intermediary；用 modImplementation 声明时，Loom 会把它重映射到开发用的
+// named 命名空间，插件代码因此可以直接继承 EvernightAddon、new Module(...)。
+// 不要改用 build/devlibs 下的 -dev.jar：它的 access widener 是 named 命名空间，
+// Loom 对 mod 依赖按 intermediary 处理，会以 "Namespace mismatch" 构建失败。
+def evernightJarFile = layout.projectDirectory.file("libs/evernight-${evernight_version}.jar").asFile
+def evernightJarUrl = findProperty('evernight_jar_url') ?:
+        "https://github.com/Evernight-Client/Evernight/releases/download/v${evernight_version}/evernight-${evernight_version}.jar"
+
+// Loom 在 afterEvaluate 阶段就会读取 mod 依赖并计算校验和，普通任务来不及补文件，
+// 所以这里在配置阶段确保 jar 存在（只在缺失时下载一次）。
+if (!evernightJarFile.isFile() || evernightJarFile.length() == 0L) {
+    evernightJarFile.parentFile.mkdirs()
+    logger.lifecycle("Downloading Evernight jar: ${evernightJarUrl}")
+    try {
+        new URL(evernightJarUrl).withInputStream { input ->
+            evernightJarFile.withOutputStream { output -> output << input }
+        }
+    } catch (Exception failure) {
+        evernightJarFile.delete()
+        throw new GradleException(
+                "Could not download ${evernightJarUrl}.\n" +
+                "Build Evernight from source and copy build/libs/evernight-${evernight_version}.jar " +
+                "into libs/, or pass -Pevernight_jar_url=<url>.", failure)
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    // Loom 负责把发行 jar 从 intermediary 重映射到 named。
+    modImplementation files(evernightJarFile)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+    options.encoding = 'UTF-8'
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') {
+        expand version: project.version
+    }
+}
+
+java {
+    withSourcesJar()
+}

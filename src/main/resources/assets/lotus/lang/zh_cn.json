@@ -1,0 +1,11 @@
+{
+  "addons.lotus.names.categories.Lotus": "Lotus",
+  "addons.lotus.names.modules.AutoHelmet": "L自动头盔",
+  "addons.lotus.descriptions.modules.AutoHelmet": "附近有猪灵且没有其他玩家时自动换上金头盔，猪灵离开后换回钻石/下界合金头盔。",
+  "addons.lotus.names.settings.DetectRange": "检测距离",
+  "addons.lotus.names.settings.DetectTicks": "检测时间-tick",
+  "addons.lotus.names.settings.Delay": "延迟",
+  "addons.lotus.names.settings.SkipEmpty": "忽略空",
+  "addons.lotus.names.settings.AvoidEnchantments": "避免的附魔",
+  "addons.lotus.messages.helmetSwitched": "切换盔甲"
+}

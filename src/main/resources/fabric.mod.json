@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "lotus",
+  "version": "${version}",
+  "name": "Lotus",
+  "description": "Lotus 插件 · Evernight 移植版。出淤泥而不染，濯清涟而不妖。原插件作者：xiaohe66。",
+  "authors": [
+    "xiaohe66"
+  ],
+  "contributors": [
+    "coolma-831 (Evernight port)"
+  ],
+  "contact": {
+    "homepage": "https://github.com/coolma-831/lotus-evernight",
+    "sources": "https://github.com/coolma-831/lotus-evernight",
+    "issues": "https://github.com/coolma-831/lotus-evernight/issues"
+  },
+  "license": "GPL-3.0-only",
+  "environment": "client",
+  "entrypoints": {
+    "evernight-addon": [
+      "com.xiaohe66.meteor.lotus.LotusAddon"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "1.21.11",
+    "java": ">=21",
+    "evernight": ">=1.0.3"
+  }
+}

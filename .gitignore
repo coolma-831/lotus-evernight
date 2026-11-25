@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# 联调目录（如果给模板加了 runClient）
+run/
+
+# 下载到本地的 Evernight 开发 jar（libs/README.md 仍入库）
+libs/*.jar
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
