@@ -1,6 +1,7 @@
 package com.xiaohe66.meteor.lotus;
 
 import com.xiaohe66.meteor.lotus.modules.AutoHelmetModule;
+import com.xiaohe66.meteor.lotus.modules.AutoSignModule;
 import evernight.addon.AddonContext;
 import evernight.addon.EvernightAddon;
 import evernight.client.modules.ModuleCategory;
@@ -23,9 +24,10 @@ public final class LotusAddon extends EvernightAddon {
         this.lotusCategory = context.registerCategory("Lotus");
 
         context.registerModule(new AutoHelmetModule(this.lotusCategory));
+        context.registerModule(new AutoSignModule(this.lotusCategory));
 
         context.logger().info("Lotus {} initialized ({} modules)",
-                context.metadata().version(), 1);
+                context.metadata().version(), 2);
     }
 
     public ModuleCategory getLotusCategory() {

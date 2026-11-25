@@ -7,5 +7,15 @@
   "addons.lotus.names.settings.Delay": "Delay",
   "addons.lotus.names.settings.SkipEmpty": "Skip When Empty",
   "addons.lotus.names.settings.AvoidEnchantments": "Avoided Enchantments",
-  "addons.lotus.messages.helmetSwitched": "Helmet switched"
+  "addons.lotus.messages.helmetSwitched": "Helmet switched",
+  "addons.lotus.names.modules.LotusAutoSign": "Auto Sign",
+  "addons.lotus.descriptions.modules.LotusAutoSign": "Fills and submits sign text automatically when a sign editor opens.",
+  "addons.lotus.names.settings.Line1": "Line 1",
+  "addons.lotus.names.settings.Line2": "Line 2",
+  "addons.lotus.names.settings.Line3": "Line 3",
+  "addons.lotus.names.settings.Line4": "Line 4",
+  "addons.lotus.names.settings.OnlyEmpty": "Only Empty Signs",
+  "addons.lotus.names.settings.AutoSubmit": "Auto Submit",
+  "addons.lotus.names.settings.SyncSettings": "Sync Settings",
+  "addons.lotus.messages.invalidTimeFormat": "Invalid time pattern, using default"
 }

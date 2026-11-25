@@ -7,5 +7,15 @@
   "addons.lotus.names.settings.Delay": "延迟",
   "addons.lotus.names.settings.SkipEmpty": "忽略空",
   "addons.lotus.names.settings.AvoidEnchantments": "避免的附魔",
-  "addons.lotus.messages.helmetSwitched": "切换盔甲"
+  "addons.lotus.messages.helmetSwitched": "切换盔甲",
+  "addons.lotus.names.modules.LotusAutoSign": "L自动签名",
+  "addons.lotus.descriptions.modules.LotusAutoSign": "打开告示牌编辑界面时自动填好并提交文本，支持 ${name} 和 $time{格式} 占位符。",
+  "addons.lotus.names.settings.Line1": "第1行",
+  "addons.lotus.names.settings.Line2": "第2行",
+  "addons.lotus.names.settings.Line3": "第3行",
+  "addons.lotus.names.settings.Line4": "第4行",
+  "addons.lotus.names.settings.OnlyEmpty": "只填写空白牌子",
+  "addons.lotus.names.settings.AutoSubmit": "自动提交",
+  "addons.lotus.names.settings.SyncSettings": "同步设置",
+  "addons.lotus.messages.invalidTimeFormat": "时间表达式错误，使用默认格式"
 }
